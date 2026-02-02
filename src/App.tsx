@@ -17,8 +17,7 @@ function cleanHTML(rawHTML: string): string {
       ".entry-content, .post-content, .content, article, #content",
     ) || doc.body;
 
-  text = entry?.innerText || "";
-
+  text = (entry as HTMLElement)?.innerText || "";
   return text.replace(/\s+/g, " ").trim();
 }
 
