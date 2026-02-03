@@ -21,6 +21,36 @@ function cleanHTML(rawHTML: string): string {
   return text.replace(/\s+/g, " ").trim();
 }
 
+function splitTextByWords(text: string, maxWords = 700): string[] {
+  const sentences = text
+    .split(".")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const chunks: string[] = [];
+  let current = "";
+  let count = 0;
+
+  for (const sentence of sentences) {
+    const words = sentence.split(/\s+/).length;
+
+    if (count + words > maxWords && current) {
+      chunks.push(current.trim() + ".");
+      current = "";
+      count = 0;
+    }
+
+    current += sentence + ". ";
+    count += words;
+  }
+
+  if (current.trim()) {
+    chunks.push(current.trim());
+  }
+
+  return chunks;
+}
+
 export default function App() {
   const [html, setHtml] = useState("");
   const [output, setOutput] = useState("");
@@ -44,6 +74,21 @@ export default function App() {
     a.click();
     URL.revokeObjectURL(url);
   };
+  const downloadSplitFiles = () => {
+    const parts = splitTextByWords(output, 700);
+
+    parts.forEach((text, i) => {
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `clean_part_${i + 1}.txt`;
+      a.click();
+
+      URL.revokeObjectURL(url);
+    });
+  };
 
   return (
     <div className="app-container">
@@ -62,9 +107,15 @@ export default function App() {
         <pre>{output}</pre>
 
         {output && (
-          <button className="download" onClick={downloadFile}>
-            ⬇️ Tải file TXT
-          </button>
+          <div className="btn-group">
+            <button className="download" onClick={downloadFile}>
+              ⬇️ Tải 1 file
+            </button>
+
+            <button className="download" onClick={downloadSplitFiles}>
+              📂 Tải nhiều file (700 từ)
+            </button>
+          </div>
         )}
       </div>
     </div>
